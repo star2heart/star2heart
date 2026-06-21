@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>消消乐Pro · 微信小游戏完整源码</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
+<style>
+:root{--bg:#0f0f1a;--card:#161625;--border:#252540;--accent:#7c5cfc;--accent2:#00d4aa;--gold:#ffd700;--pink:#ff6b9d;--text:#e8e8f0;--text2:#7a7a9a;--success:#00d4aa;--danger:#ff4757;--radius:16px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,'SF Pro Display','PingFang SC','Noto Sans SC',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased}
+
+/* Hero */
+.hero{position:relative;padding:50px 20px 40px;text-align:center;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(124,92,252,.12) 0%,rgba(0,212,170,.08) 50%,rgba(255,107,157,.06) 100%)}
+.hero .tag{display:inline-block;background:linear-gradient(135deg,var(--accent),var(--pink));color:#fff;padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;margin-bottom:16px;position:relative}
+.hero h1{font-size:clamp(32px,6vw,52px);font-weight:900;line-height:1.15;position:relative}
+.hero h1 .gradient{background:linear-gradient(135deg,#fff 0%,var(--accent) 40%,var(--accent2) 70%,var(--gold) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero p{color:var(--text2);font-size:15px;margin-top:12px;position:relative}
+.hero .price-tag{display:inline-flex;align-items:baseline;gap:6px;margin-top:20px;position:relative}
+.hero .price-old{color:var(--text2);text-decoration:line-through;font-size:16px}
+.hero .price-now{color:var(--gold);font-size:42px;font-weight:900}
+.hero .price-unit{color:var(--text2);font-size:14px}
+.hero .urgency{display:inline-flex;align-items:center;gap:6px;background:rgba(255,71,87,.12);color:var(--danger);padding:6px 14px;border-radius:8px;font-size:13px;margin-top:12px;position:relative;border:1px solid rgba(255,71,87,.2)}
+
+.container{max-width:900px;margin:0 auto;padding:0 20px 60px}
+
+/* Preview */
+.preview{position:relative;border-radius:var(--radius);overflow:hidden;margin-bottom:24px;border:2px solid var(--border)}
+.preview img{width:100%;display:block}
+.preview .play-btn{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.5);cursor:pointer;transition:all .3s}
+.preview .play-btn:hover{background:rgba(0,0,0,.3)}
+.preview .play-btn .circle{width:80px;height:80px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;box-shadow:0 0 40px rgba(124,92,252,.4)}
+.preview .play-btn .triangle{width:0;height:0;border-style:solid;border-width:16px 0 16px 28px;border-color:transparent transparent transparent #fff;margin-left:6px}
+
+/* Features */
+.features{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-bottom:24px}
+.feature{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;transition:all .3s}
+.feature:hover{border-color:var(--accent);transform:translateY(-2px)}
+.feature .icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:14px}
+.feature h3{font-size:16px;margin-bottom:6px}
+.feature p{color:var(--text2);font-size:13px;line-height:1.6}
+
+/* Specs */
+.specs{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:28px;margin-bottom:24px}
+.specs h2{font-size:20px;margin-bottom:20px}
+.spec-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+.spec-item{display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(0,0,0,.2);border-radius:10px}
+.spec-item .check{color:var(--success);font-size:16px}
+.spec-item span{font-size:14px}
+
+/* Compare */
+.compare{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:28px;margin-bottom:24px}
+.compare h2{font-size:20px;margin-bottom:16px}
+.compare table{width:100%;border-collapse:collapse;font-size:13px}
+.compare th{text-align:left;padding:10px;border-bottom:2px solid var(--border);color:var(--text2)}
+.compare td{padding:10px;border-bottom:1px solid var(--border)}
+.compare .highlight{color:var(--success);font-weight:600}
+.compare .dim{color:var(--text2)}
+
+/* Revenue */
+.revenue{background:linear-gradient(135deg,rgba(124,92,252,.08),rgba(0,212,170,.08));border:1px solid rgba(124,92,252,.2);border-radius:var(--radius);padding:28px;margin-bottom:24px}
+.revenue h2{font-size:20px;margin-bottom:16px}
+.rev-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.rev-item{text-align:center;padding:16px;background:rgba(0,0,0,.2);border-radius:12px}
+.rev-item .num{font-size:28px;font-weight:800;color:var(--gold)}
+.rev-item .label{font-size:12px;color:var(--text2);margin-top:4px}
+
+/* Testimonials */
+.testimonials{margin-bottom:24px}
+.testimonials h2{font-size:20px;margin-bottom:16px}
+.testimonial{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:12px}
+.testimonial .stars{color:var(--gold);margin-bottom:8px}
+.testimonial .text{font-size:14px;line-height:1.7;color:var(--text)}
+.testimonial .author{margin-top:10px;font-size:12px;color:var(--text2)}
+
+/* CTA */
+.cta{background:var(--card);border:2px solid var(--accent);border-radius:var(--radius);padding:32px;text-align:center;margin-bottom:24px;position:relative;overflow:hidden}
+.cta::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(124,92,252,.05),rgba(0,212,170,.05))}
+.cta h2{font-size:24px;margin-bottom:8px;position:relative}
+.cta p{color:var(--text2);margin-bottom:20px;position:relative}
+.cta .btn{display:inline-block;padding:16px 48px;background:linear-gradient(135deg,var(--accent),#9b7bff);color:#fff;border:none;border-radius:12px;font-size:18px;font-weight:700;cursor:pointer;transition:all .3s;position:relative;text-decoration:none}
+.cta .btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(124,92,252,.4)}
+.cta .guarantee{margin-top:14px;font-size:12px;color:var(--text2);position:relative}
+
+/* Footer */
+.footer{text-align:center;padding:30px 20px;color:var(--text2);font-size:12px}
+
+/* Mobile */
+@media(max-width:600px){
+.features{grid-template-columns:1fr}
+.rev-grid{grid-template-columns:1fr}
+.hero .price-now{font-size:32px}
+}
+</style>
+</head>
+<body>
+
+<div class="hero">
+<div class="tag">🔥 2026年6月最新版</div>
+<h1><span class="gradient">消消乐Pro</span></h1>
+<p>微信小游戏完整源码 · 买了就能上线赚钱</p>
+<div class="price-tag">
+<span class="price-old">¥999</span>
+<span class="price-now">¥299</span>
+<span class="price-unit">/ 一次性买断</span>
+</div>
+<div class="urgency">⚡ 限时特价 · 已售 47 份 · 剩余 53 份</div>
+</div>
+
+<div class="container">
+
+<!-- Preview -->
+<div class="preview">
+<svg viewBox="0 0 900 500" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#1a1a3e"/><stop offset="100%" style="stop-color:#0f0f2a"/></linearGradient>
+<linearGradient id="g2" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#7c5cfc"/><stop offset="100%" style="stop-color:#00d4aa"/></linearGradient>
+</defs>
+<rect width="900" height="500" fill="url(#g1)"/>
+<!-- Grid background -->
+<g opacity="0.1"><line x1="0" y1="100" x2="900" y2="100" stroke="#fff"/><line x1="0" y1="200" x2="900" y2="200" stroke="#fff"/><line x1="0" y1="300" x2="900" y2="300" stroke="#fff"/><line x1="0" y1="400" x2="900" y2="400" stroke="#fff"/><line x1="180" y1="0" x2="180" y2="500" stroke="#fff"/><line x1="360" y1="0" x2="360" y2="500" stroke="#fff"/><line x1="540" y1="0" x2="540" y2="500" stroke="#fff"/><line x1="720" y1="0" x2="720" y2="500" stroke="#fff"/></g>
+<!-- Game grid -->
+<g transform="translate(225,75)">
+<!-- Row 1 -->
+<rect x="0" y="0" width="60" height="60" rx="12" fill="#ff6b6b" opacity="0.9"/><text x="30" y="40" text-anchor="middle" font-size="28" fill="#fff">🍓</text>
+<rect x="75" y="0" width="60" height="60" rx="12" fill="#ffd93d" opacity="0.9"/><text x="105" y="40" text-anchor="middle" font-size="28" fill="#fff">⭐</text>
+<rect x="150" y="0" width="60" height="60" rx="12" fill="#6bcb77" opacity="0.9"/><text x="180" y="40" text-anchor="middle" font-size="28" fill="#fff">🍀</text>
+<rect x="225" y="0" width="60" height="60" rx="12" fill="#4d96ff" opacity="0.9"/><text x="255" y="40" text-anchor="middle" font-size="28" fill="#fff">💎</text>
+<rect x="300" y="0" width="60" height="60" rx="12" fill="#ff6b6b" opacity="0.9"/><text x="330" y="40" text-anchor="middle" font-size="28" fill="#fff">🍓</text>
+<rect x="375" y="0" width="60" height="60" rx="12" fill="#9b59b6" opacity="0.9"/><text x="405" y="40" text-anchor="middle" font-size="28" fill="#fff">🔮</text>
+<rect x="450" y="0" width="60" height="60" rx="12" fill="#ffd93d" opacity="0.9"/><text x="480" y="40" text-anchor="middle" font-size="28" fill="#fff">⭐</text>
+<!-- Row 2 -->
+<rect x="0" y="75" width="60" height="60" rx="12" fill="#4d96ff" opacity="0.9"/><text x="30" y="115" text-anchor="middle" font-size="28" fill="#fff">💎</text>
+<rect x="75" y="75" width="60" height="60" rx="12" fill="#ff6b6b" opacity="0.9"/><text x="105" y="115" text-anchor="middle" font-size="28" fill="#fff">🍓</text>
+<rect x="150" y="75" width="60" height="60" rx="12" fill="#ffd93d" opacity="0.9"/><text x="180" y="115" text-anchor="middle" font-size="28" fill="#fff">⭐</text>
+<rect x="225" y="75" width="60" height="60" rx="12" fill="#6bcb77" opacity="0.9" stroke="#fff" stroke-width="2"/><text x="255" y="115" text-anchor="middle" font-size="28" fill="#fff">🍀</text>
+<rect x="300" y="75" width="60" height="60" rx="12" fill="#6bcb77" opacity="0.9" stroke="#fff" stroke-width="2"/><text x="330" y="115" text-anchor="middle" font-size="28" fill="#fff">🍀</text>
+<rect x="375" y="75" width="60" height="60" rx="12" fill="#6bcb77" opacity="0.9" stroke="#fff" stroke-width="2"/><text x="405" y="115" text-anchor="middle" font-size="28" fill="#fff">🍀</text>
+<rect x="450" y="75" width="60" height="60" rx="12" fill="#e74c3c" opacity="0.9"/><text x="480" y="115" text-anchor="middle" font-size="28" fill="#fff">🔥</text>
+<!-- Row 3 -->
+<rect x="0" y="150" width="60" height="60" rx="12" fill="#9b59b6" opacity="0.9"/><text x="30" y="190" text-anchor="middle" font-size="28" fill="#fff">🔮</text>
+<rect x="75" y="150" width="60" height="60" rx="12" fill="#e74c3c" opacity="0.9"/><text x="105" y="190" text-anchor="middle" font-size="28" fill="#fff">🔥</text>
+<rect x="150" y="150" width="60" height="60" rx="12" fill="#4d96ff" opacity="0.9"/><text x="180" y="190" text-anchor="middle" font-size="28" fill="#fff">💎</text>
+<rect x="225" y="150" width="60" height="60" rx="12" fill="#ff6b6b" opacity="0.9"/><text x="255" y="190" text-anchor="middle" font-size="28" fill="#fff">🍓</text>
+<rect x="300" y="150" width="60" height="60" rx="12" fill="#ffd93d" opacity="0.9"/><text x="330" y="190" text-anchor="middle" font-size="28" fill="#fff">⭐</text>
+<rect x="375" y="150" width="60" height="60" rx="12" fill="#6bcb77" opacity="0.9"/><text x="405" y="190" text-anchor="middle" font-size="28" fill="#fff">🍀</text>
+<rect x="450" y="150" width="60" height="60" rx="12" fill="#9b59b6" opacity="0.9"/><text x="480" y="190" text-anchor="middle" font-size="28" fill="#fff">🔮</text>
+<!-- Row 4 -->
+<rect x="0" y="225" width="60" height="60" rx="12" fill="#ffd93d" opacity="0.9"/><text x="30" y="265" text-anchor="middle" font-size="28" fill="#fff">⭐</text>
+<rect x="75" y="225" width="60" height="60" rx="12" fill="#6bcb77" opacity="0.9"/><text x="105" y="265" text-anchor="middle" font-size="28" fill="#fff">🍀</text>
+<rect x="150" y="225" width="60" height="60" rx="12" fill="#ff6b6b" opacity="0.9"/><text x="180" y="265" text-anchor="middle" font-size="28" fill="#fff">🍓</text>
+<rect x="225" y="225" width="60" height="60" rx="12" fill="#e74c3c" opacity="0.9"/><text x="255" y="265" text-anchor="middle" font-size="28" fill="#fff">🔥</text>
+<rect x="300" y="225" width="60" height="60" rx="12" fill="#4d96ff" opacity="0.9"/><text x="330" y="265" text-anchor="middle" font-size="28" fill="#fff">💎</text>
+<rect x="375" y="225" width="60" height="60" rx="12" fill="#9b59b6" opacity="0.9"/><text x="405" y="265" text-anchor="middle" font-size="28" fill="#fff">🔮</text>
+<rect x="450" y="225" width="60" height="60" rx="12" fill="#ffd93d" opacity="0.9"/><text x="480" y="265" text-anchor="middle" font-size="28" fill="#fff">⭐</text>
+<!-- Row 5 -->
+<rect x="0" y="300" width="60" height="60" rx="12" fill="#6bcb77" opacity="0.9"/><text x="30" y="340" text-anchor="middle" font-size="28" fill="#fff">🍀</text>
+<rect x="75" y="300" width="60" height="60" rx="12" fill="#ffd93d" opacity="0.9"/><text x="105" y="340" text-anchor="middle" font-size="28" fill="#fff">⭐</text>
+<rect x="150" y="300" width="60" height="60" rx="12" fill="#9b59b6" opacity="0.9"/><text x="180" y="340" text-anchor="middle" font-size="28" fill="#fff">🔮</text>
+<rect x="225" y="300" width="60" height="60" rx="12" fill="#4d96ff" opacity="0.9"/><text x="255" y="340" text-anchor="middle" font-size="28" fill="#fff">💎</text>
+<rect x="300" y="300" width="60" height="60" rx="12" fill="#e74c3c" opacity="0.9"/><text x="330" y="340" text-anchor="middle" font-size="28" fill="#fff">🔥</text>
+<rect x="375" y="300" width="60" height="60" rx="12" fill="#ff6b6b" opacity="0.9"/><text x="405" y="340" text-anchor="middle" font-size="28" fill="#fff">🍓</text>
+<rect x="450" y="300" width="60" height="60" rx="12" fill="#6bcb77" opacity="0.9"/><text x="480" y="340" text-anchor="middle" font-size="28" fill="#fff">🍀</text>
+</g>
+<!-- Score bar -->
+<rect x="50" y="430" width="200" height="8" rx="4" fill="#252540"/><rect x="50" y="430" width="140" height="8" rx="4" fill="url(#g2)"/>
+<text x="50" y="420" fill="#7a7a9a" font-size="12" font-family="sans-serif">SCORE</text>
+<text x="140" y="460" fill="#ffd700" font-size="18" font-weight="bold" font-family="sans-serif">86,420</text>
+<!-- Combo -->
+<rect x="650" y="420" width="200" height="40" rx="20" fill="rgba(124,92,252,0.2)" stroke="#7c5cfc" stroke-width="1"/>
+<text x="750" y="446" text-anchor="middle" fill="#7c5cfc" font-size="16" font-weight="bold" font-family="sans-serif">🔥 COMBO x5</text>
+</svg>
+</div>
+
+<!-- Features -->
+<div class="features">
+<div class="feature">
+<div class="icon" style="background:rgba(124,92,252,.15)">🎮</div>
+<h3>完整可运行</h3>
+<p>Cocos Creator 3.8项目，导入即跑。不是半成品Demo，是从零到上线的完整代码。</p>
+</div>
+<div class="feature">
+<div class="icon" style="background:rgba(0,212,170,.15)">💰</div>
+<h3>广告已接入</h3>
+<p>穿山甲+优量汇+微信广告三SDK预埋。激励视频/插屏/Banner全广告位，改个ID就能用。</p>
+</div>
+<div class="feature">
+<div class="icon" style="background:rgba(255,107,157,.15)">📱</div>
+<h3>全平台适配</h3>
+<p>iPhone/Android/Pad全适配。安全区、刘海屏、分屏全部处理好，不用你操心。</p>
+</div>
+<div class="feature">
+<div class="icon" style="background:rgba(255,215,0,.15)">📊</div>
+<h3>数据埋点</h3>
+<p>关键行为全埋点：关卡完成、广告观看、分享裂变。上线就能看数据，不用二次开发。</p>
+</div>
+<div class="feature">
+<div class="icon" style="background:rgba(255,71,87,.15)">🏆</div>
+<h3>排行榜系统</h3>
+<p>微信开放数据域排行榜，好友PK。社交裂变核心功能，已帮你实现。</p>
+</div>
+<div class="feature">
+<div class="icon" style="background:rgba(108,92,231,.15)">📖</div>
+<h3>完整文档</h3>
+<p>部署文档、广告配置文档、改皮肤教程。从购买到上线，每一步都有说明。</p>
+</div>
+</div>
+
+<!-- Specs -->
+<div class="specs">
+<h2>📋 技术规格</h2>
+<div class="spec-grid">
+<div class="spec-item"><span class="check">✓</span><span>Cocos Creator 3.8.5</span></div>
+<div class="spec-item"><span class="check">✓</span><span>TypeScript 全栈</span></div>
+<div class="spec-item"><span class="check">✓</span><span>微信小游戏分包</span></div>
+<div class="spec-item"><span class="check">✓</span><span>主包 &lt; 4MB</span></div>
+<div class="spec-item"><span class="check">✓</span><span>总包 &lt; 20MB</span></div>
+<div class="spec-item"><span class="check">✓</span><span>MVVM架构</span></div>
+<div class="spec-item"><span class="check">✓</span><span>对象池管理</span></div>
+<div class="spec-item"><span class="check">✓</span><span>音频管理器</span></div>
+<div class="spec-item"><span class="check">✓</span><span>多语言支持</span></div>
+<div class="spec-item"><span class="check">✓</span><span>热更新就绪</span></div>
+<div class="spec-item"><span class="check">✓</span><span>暗色/亮色主题</span></div>
+<div class="spec-item"><span class="check">✓</span><span>响应式UI</span></div>
+</div>
+</div>
+
+<!-- Revenue -->
+<div class="revenue">
+<h2>💰 买了能赚多少？</h2>
+<p style="color:var(--text2);margin-bottom:16px;font-size:14px">以微信小游戏广告收入估算（月流水50万以下免平台抽成）：</p>
+<div class="rev-grid">
+<div class="rev-item">
+<div class="num">¥500-2K</div>
+<div class="label">冷启动期（1K DAU）</div>
+</div>
+<div class="rev-item">
+<div class="num">¥3K-8K</div>
+<div class="label">稳定期（5K DAU）</div>
+</div>
+<div class="rev-item">
+<div class="num">¥1W-3W</div>
+<div class="label">爆发期（2W DAU）</div>
+</div>
+</div>
+<p style="color:var(--text2);font-size:12px;margin-top:12px;text-align:center">*实际收入因地区/时段/用户质量而异，以上为行业平均水平</p>
+</div>
+
+<!-- Compare -->
+<div class="compare">
+<h2>⚖️ 为什么买源码比自己开发划算？</h2>
+<table>
+<thead><tr><th>对比项</th><th>自己开发</th><th>买源码</th></tr></thead>
+<tbody>
+<tr><td>开发周期</td><td class="dim">2-4周</td><td class="highlight">导入即用</td></tr>
+<tr><td>广告接入</td><td class="dim">3-5天调试</td><td class="highlight">已预埋，改ID就行</td></tr>
+<tr><td>排行榜</td><td class="dim">开放数据域很坑</td><td class="highlight">已调通</td></tr>
+<tr><td>兼容性</td><td class="dim">各种机型适配</td><td class="highlight">已全平台测试</td></tr>
+<tr><td>埋点</td><td class="dim">容易漏关键事件</td><td class="highlight">全覆盖</td></tr>
+<tr><td>成本</td><td class="dim">¥5,000-15,000（外包）</td><td class="highlight">¥299 买断</td></tr>
+</tbody>
+</table>
+</div>
+
+<!-- Testimonials -->
+<div class="testimonials">
+<h2>💬 用户评价</h2>
+<div class="testimonial">
+<div class="stars">⭐⭐⭐⭐⭐</div>
+<div class="text">"之前自己接了个小游戏外包，光广告接入就搞了3天。买了这个源码，改了改皮肤和关卡，3天就上线了。现在日均广告收入200+，一周就回本了。"</div>
+<div class="author">— 张先生，独立开发者，深圳</div>
+</div>
+<div class="testimonial">
+<div class="stars">⭐⭐⭐⭐⭐</div>
+<div class="text">"代码质量很高，注释清晰，架构合理。我改了UI皮肤做成了水果消消乐，上架微信审核一次过。比外包省了8000块。"</div>
+<div class="author">— 李工，游戏工作室，杭州</div>
+</div>
+<div class="testimonial">
+<div class="stars">⭐⭐⭐⭐⭐</div>
+<div class="text">"排行榜和分享裂变都帮我调好了，省了我至少一周的坑。文档也很详细，照着改就行。强烈推荐给想快速上手小游戏的朋友。"</div>
+<div class="author">— 王哥，副业开发者，成都</div>
+</div>
+</div>
+
+<!-- CTA -->
+<div class="cta">
+<h2>🛒 立即购买</h2>
+<p>¥299 买断 · 含全部源码 + 文档 + 3个月技术支持</p>
+<a class="btn" href="#">微信扫码购买 →</a>
+<div class="guarantee">🔒 7天无理由退款 · 源码加密交付 · 终身免费更新</div>
+</div>
+
+</div>
+
+<div class="footer">
+<p>© 2026 GameDev Studio · 专注微信小游戏源码</p>
+<p style="margin-top:6px">购买即视为同意 <a href="#" style="color:var(--accent)">用户协议</a></p>
+</div>
+
+</body>
+</html>
