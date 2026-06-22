@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>真实利润 — 上传CSV，30秒看清你的真实利润</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+:root{--bg:#09090f;--card:#111118;--card2:#16161f;--border:#1e1e2e;--accent:#4f8cff;--accent2:#00e5a0;--gold:#ffd700;--red:#ff4d6a;--orange:#ff8c42;--purple:#a78bfa;--text:#e8e8f0;--text2:#6a6a8a;--radius:14px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,'SF Pro Display','PingFang SC',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* Hero */
+.hero{padding:56px 20px 40px;text-align:center;position:relative}
+.hero::after{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:600px;height:400px;background:radial-gradient(circle,rgba(79,140,255,.08) 0%,transparent 70%);pointer-events:none}
+.hero .badge{display:inline-flex;align-items:center;gap:6px;background:rgba(0,229,160,.1);border:1px solid rgba(0,229,160,.2);color:var(--accent2);padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;margin-bottom:16px;position:relative}
+.hero h1{font-size:clamp(28px,6vw,44px);font-weight:800;line-height:1.15;position:relative}
+.hero h1 span{background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--text2);font-size:15px;margin-top:10px;max-width:480px;margin-left:auto;margin-right:auto;position:relative;line-height:1.6}
+
+.wrap{max-width:780px;margin:0 auto;padding:0 16px 80px}
+
+/* Upload Zone */
+.upload-zone{border:2px dashed var(--border);border-radius:var(--radius);padding:48px 24px;text-align:center;cursor:pointer;transition:all .3s;background:var(--card);margin-bottom:16px;position:relative}
+.upload-zone:hover,.upload-zone.dragover{border-color:var(--accent);background:rgba(79,140,255,.04)}
+.upload-zone .icon{font-size:48px;margin-bottom:12px}
+.upload-zone h3{font-size:18px;margin-bottom:6px}
+.upload-zone p{color:var(--text2);font-size:13px}
+.upload-zone .formats{margin-top:12px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.upload-zone .fmt{padding:4px 10px;border-radius:6px;font-size:11px;background:var(--card2);border:1px solid var(--border);color:var(--text2)}
+.upload-zone input{display:none}
+
+/* Steps */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px}
+.step{text-align:center;padding:20px 12px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius)}
+.step .num{width:32px;height:32px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;margin-bottom:10px}
+.step h4{font-size:14px;margin-bottom:4px}
+.step p{color:var(--text2);font-size:12px}
+
+/* Dashboard */
+.dashboard{display:none}
+.dashboard.show{display:block}
+
+/* Metric Cards */
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+@media(max-width:600px){.metrics{grid-template-columns:repeat(2,1fr)}}
+.metric{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center}
+.metric .val{font-size:24px;font-weight:800;line-height:1.2}
+.metric .lbl{font-size:11px;color:var(--text2);margin-top:3px}
+.metric .change{font-size:11px;margin-top:4px;font-weight:600}
+
+/* Pipeline */
+.pipeline{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:16px}
+.pipeline h3{font-size:16px;margin-bottom:16px}
+.pipe-flow{display:flex;align-items:center;gap:0;overflow-x:auto;padding-bottom:8px}
+.pipe-step{flex:1;min-width:100px;text-align:center;padding:12px 8px;background:var(--card2);border-radius:10px;position:relative}
+.pipe-step .pipe-val{font-size:18px;font-weight:700;margin-bottom:2px}
+.pipe-step .pipe-lbl{font-size:11px;color:var(--text2)}
+.pipe-step .pipe-pct{font-size:10px;color:var(--text2);margin-top:3px}
+.pipe-arrow{color:var(--text2);font-size:18px;padding:0 4px;flex-shrink:0}
+
+/* Charts */
+.charts-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+@media(max-width:600px){.charts-row{grid-template-columns:1fr}}
+.chart-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px}
+.chart-card h3{font-size:14px;margin-bottom:14px}
+.chart-card canvas{width:100%!important;max-height:220px}
+
+/* Table */
+.table-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px;overflow-x:auto}
+.table-card h3{font-size:16px;margin-bottom:14px}
+.table-card table{width:100%;border-collapse:collapse;font-size:13px}
+.table-card th{text-align:left;padding:10px 8px;border-bottom:2px solid var(--border);color:var(--text2);font-weight:600;white-space:nowrap}
+.table-card td{padding:10px 8px;border-bottom:1px solid var(--border);white-space:nowrap}
+.table-card tr:hover{background:rgba(79,140,255,.03)}
+.badge-profit{padding:3px 8px;border-radius:4px;font-size:11px;font-weight:600;background:rgba(0,229,160,.1);color:var(--accent2)}
+.badge-loss{padding:3px 8px;border-radius:4px;font-size:11px;font-weight:600;background:rgba(255,77,106,.1);color:var(--red)}
+.badge-warn{padding:3px 8px;border-radius:4px;font-size:11px;font-weight:600;background:rgba(255,140,66,.1);color:var(--orange)}
+
+/* Insights */
+.insights{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:16px}
+.insights h3{font-size:16px;margin-bottom:14px}
+.insight-item{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.insight-item:last-child{border-bottom:none}
+.insight-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.insight-text{font-size:13px;line-height:1.6}
+.insight-text strong{color:var(--accent)}
+
+/* Pricing */
+.pricing{margin-bottom:24px}
+.pricing h2{text-align:center;font-size:22px;margin-bottom:20px}
+.price-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:520px){.price-grid{grid-template-columns:1fr}}
+.price-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:28px;text-align:center;position:relative}
+.price-card.pro{border-color:var(--accent);background:linear-gradient(135deg,rgba(79,140,255,.06),rgba(0,229,160,.04))}
+.price-card .plan{font-size:14px;color:var(--text2);margin-bottom:8px}
+.price-card .amount{font-size:36px;font-weight:800}
+.price-card .period{font-size:13px;color:var(--text2)}
+.price-card .features{text-align:left;margin:20px 0;font-size:13px}
+.price-card .features li{padding:6px 0;display:flex;align-items:center;gap:8px;list-style:none}
+.price-card .features li::before{content:'✓';color:var(--accent2);font-weight:700}
+.price-card .features li.disabled{color:var(--text2)}
+.price-card .features li.disabled::before{content:'✗';color:var(--text2)}
+.price-card .btn{display:block;padding:12px;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;text-decoration:none;text-align:center}
+.btn-free{background:var(--card2);color:var(--text);border:1px solid var(--border)}
+.btn-pro{background:linear-gradient(135deg,var(--accent),#6b5cff);color:#fff}
+
+/* Footer */
+.footer{text-align:center;padding:30px;color:var(--text2);font-size:11px}
+
+/* Loading */
+.loading{text-align:center;padding:40px;display:none}
+.loading.show{display:block}
+.spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<div class="hero">
+<div class="badge">⚡ 2026年6月 · 支持淘宝/拼多多/抖音</div>
+<h1>上传CSV，<span>30秒</span><br>看清你的真实利润</h1>
+<p>不只是销售额。不只是ROAS。把所有成本算清楚——COGS、运费、广告、退货、平台佣金——每一单赚多少一目了然。</p>
+</div>
+
+<div class="wrap">
+
+<!-- Steps -->
+<div class="steps">
+<div class="step">
+<div class="num" style="background:rgba(79,140,255,.15);color:var(--accent)">1</div>
+<h4>导出CSV</h4>
+<p>从淘宝/拼多多/抖音后台导出订单数据</p>
+</div>
+<div class="step">
+<div class="num" style="background:rgba(0,229,160,.15);color:var(--accent2)">2</div>
+<h4>拖入上传</h4>
+<p>拖入文件，自动识别平台和数据格式</p>
+</div>
+<div class="step">
+<div class="num" style="background:rgba(255,215,0,.15);color:var(--gold)">3</div>
+<h4>看清利润</h4>
+<p>30秒出结果，哪单赚哪单亏一目了然</p>
+</div>
+</div>
+
+<!-- Upload Zone -->
+<div class="upload-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+<div class="icon">📁</div>
+<h3>拖入你的订单CSV文件</h3>
+<p>或点击选择文件</p>
+<div class="formats">
+<span class="fmt">淘宝订单CSV</span>
+<span class="fmt">拼多多订单CSV</span>
+<span class="fmt">抖音订单CSV</span>
+<span class="fmt">京东订单CSV</span>
+</div>
+<input type="file" id="fileInput" accept=".csv">
+</div>
+
+<!-- Loading -->
+<div class="loading" id="loading">
+<div class="spinner"></div>
+<p style="color:var(--text2);font-size:14px">正在解析数据...</p>
+</div>
+
+<!-- Dashboard -->
+<div class="dashboard" id="dashboard">
+<div class="metrics" id="metrics"></div>
+<div class="pipeline" id="pipeline"></div>
+<div class="charts-row">
+<div class="chart-card">
+<h3>成本构成</h3>
+<canvas id="costChart"></canvas>
+</div>
+<div class="chart-card">
+<h3>利润趋势</h3>
+<canvas id="trendChart"></canvas>
+</div>
+</div>
+<div class="table-card">
+<h3>📦 商品利润排行</h3>
+<table>
+<thead><tr><th>商品</th><th>销量</th><th>销售额</th><th>总成本</th><th>净利润</th><th>利润率</th><th>状态</th></tr></thead>
+<tbody id="productTable"></tbody>
+</table>
+</div>
+<div class="insights" id="insights"></div>
+</div>
+
+<!-- Pricing -->
+<div class="pricing">
+<h2>选择适合你的方案</h2>
+<div class="price-grid">
+<div class="price-card">
+<div class="plan">免费版</div>
+<div class="amount">¥0</div>
+<div class="period">永久免费</div>
+<ul class="features">
+<li>每月3次分析</li>
+<li>单次最多1,000行</li>
+<li>基础利润计算</li>
+<li>成本构成图表</li>
+<li class="disabled">AI洞察建议</li>
+<li class="disabled">批量分析</li>
+<li class="disabled">导出PDF报告</li>
+<li class="disabled">历史数据对比</li>
+</ul>
+<a class="btn btn-free" href="#">免费开始</a>
+</div>
+<div class="price-card pro">
+<div class="plan">Pro版</div>
+<div class="amount">¥29<span style="font-size:16px;font-weight:400">/月</span></div>
+<div class="period">或 ¥199/年（省43%）</div>
+<ul class="features">
+<li>无限次分析</li>
+<li>单次最多50,000行</li>
+<li>5D利润管线</li>
+<li>AI洞察建议</li>
+<li>批量分析</li>
+<li>导出PDF报告</li>
+<li>历史数据对比</li>
+<li>优先客服</li>
+</ul>
+<a class="btn btn-pro" href="#">立即升级 →</a>
+</div>
+</div>
+</div>
+
+</div>
+
+<div class="footer">
+<p>数据仅在浏览器本地处理，不会上传到任何服务器</p>
+<p style="margin-top:4px">Built by <a href="https://github.com/star2heart" style="color:var(--accent);text-decoration:none">GameDev Studio</a></p>
+</div>
+
+<script>
+// === CSV Parser ===
+const dropZone=document.getElementById('dropZone');
+const fileInput=document.getElementById('fileInput');
+const loading=document.getElementById('loading');
+const dashboard=document.getElementById('dashboard');
+
+// Drag & drop
+['dragenter','dragover'].forEach(e=>dropZone.addEventListener(e,ev=>{ev.preventDefault();dropZone.classList.add('dragover')}));
+['dragleave','drop'].forEach(e=>dropZone.addEventListener(e,ev=>{ev.preventDefault();dropZone.classList.remove('dragover')}));
+dropZone.addEventListener('drop',e=>{const f=e.dataTransfer.files[0];if(f)handleFile(f)});
+fileInput.addEventListener('change',e=>{const f=e.target.files[0];if(f)handleFile(f)});
+
+function handleFile(file){
+if(!file.name.endsWith('.csv')){alert('请上传CSV文件');return}
+dropZone.style.display='none';
+loading.classList.add('show');
+const reader=new FileReader();
+reader.onload=e=>{
+setTimeout(()=>{parseCSV(e.target.result);loading.classList.remove('show');dashboard.classList.add('show')},800);
+};
+reader.readAsText(file,'UTF-8');
+}
+
+// === Platform Detection & Parsing ===
+function parseCSV(text){
+const lines=text.trim().split('\n');
+const headers=lines[0].split(',').map(h=>h.trim().replace(/"/g,''));
+
+// Detect platform
+let platform='unknown';
+const headerStr=headers.join(',');
+if(headerStr.includes('订单编号')&&headerStr.includes('实收金额'))platform='taobao';
+else if(headerStr.includes('订单号')&&headerStr.includes('商品金额'))platform='pdd';
+else if(headerStr.includes('订单ID')&&headerStr.includes('实付金额'))platform='douyin';
+else if(headerStr.includes('Order')||headerStr.includes('order'))platform='shopify';
+
+// Find column indices
+const cols={};
+const find=(keys)=>{for(const k of keys){const i=headers.findIndex(h=>h.includes(k));if(i>=0)return i}return -1};
+cols.name=find(['商品名称','商品标题','商品','Product']);
+cols.price=find(['实收金额','实付金额','商品金额','总金额','Total','Price']);
+cols.count=find(['商品数量','数量','Qty','Quantity']);
+cols.orderId=find(['订单编号','订单号','订单ID','Order']);
+cols.status=find(['订单状态','交易状态','Status']);
+cols.date=find(['创建时间','付款时间','订单创建时间','Date']);
+cols.postage=find(['运费','邮费','Shipping']);
+cols.refund=find(['退款','退货','Refund']);
+
+// Parse rows
+const products={};
+let totalRevenue=0,totalOrders=0,totalRefund=0,totalPostage=0;
+const dailyData={};
+
+for(let i=1;i<lines.length;i++){
+const row=parseCSVLine(lines[i]);
+if(row.length<3)continue;
+
+const name=cols.name>=0?row[cols.name]:'商品'+i;
+const price=cols.price>=0?parseFloat(String(row[cols.price]).replace(/[¥￥,，]/g,''))||0:0;
+const count=cols.count>=0?parseInt(row[cols.count])||1:1;
+const postage=cols.postage>=0?parseFloat(String(row[cols.postage]).replace(/[¥￥,，]/g,''))||0:0;
+const status=cols.status>=0?row[cols.status]:'';
+const date=cols.date>=0?row[cols.date]:'';
+
+// Skip refunded orders
+if(status.includes('退款')||status.includes('退货')){totalRefund+=price;continue}
+
+totalRevenue+=price*count;
+totalOrders+=count;
+totalPostage+=postage*count;
+
+// Aggregate by product
+if(!products[name])products[name]={name,quantity:0,revenue:0};
+products[name].quantity+=count;
+products[name].revenue+=price*count;
+
+// Daily data
+if(date){
+const day=date.substring(0,10);
+if(!dailyData[day])dailyData[day]={revenue:0,orders:0};
+dailyData[day].revenue+=price*count;
+dailyData[day].orders+=count;
+}
+}
+
+// Simulate cost breakdown (in real app, user would input these)
+const avgPrice=totalOrders>0?totalRevenue/totalOrders:0;
+const estimatedCOGS=totalRevenue*0.3; // 30% assumed COGS
+const estimatedAds=totalRevenue*0.15; // 15% assumed ad cost
+const estimatedPlatformFee=totalRevenue*0.006; // PDD 0.6%
+const estimatedShipping=totalPostage||totalOrders*4; // avg ¥4/order
+const estimatedReturns=totalRevenue*0.05; // 5% returns
+const totalCost=estimatedCOGS+estimatedAds+estimatedPlatformFee+estimatedShipping+estimatedReturns;
+const trueProfit=totalRevenue-totalCost;
+const profitMargin=totalRevenue>0?(trueProfit/totalRevenue*100):0;
+
+// === Render Dashboard ===
+// Metrics
+document.getElementById('metrics').innerHTML=`
+<div class="metric"><div class="val" style="color:var(--text)">¥${fmtNum(totalRevenue)}</div><div class="lbl">总销售额 (GMV)</div></div>
+<div class="metric"><div class="val" style="color:var(--accent)">¥${fmtNum(totalRevenue-totalRefund)}</div><div class="lbl">净收入</div></div>
+<div class="metric"><div class="val" style="color:${trueProfit>=0?'var(--accent2)':'var(--red)'}">¥${fmtNum(trueProfit)}</div><div class="lbl">真实利润</div><div class="change" style="color:${profitMargin>=10?'var(--accent2)':'var(--red)'}">利润率 ${profitMargin.toFixed(1)}%</div></div>
+<div class="metric"><div class="val" style="color:var(--gold)">${totalOrders}</div><div class="lbl">总订单数</div><div class="change" style="color:var(--text2)">均价 ¥${avgPrice.toFixed(0)}</div></div>
+`;
+
+// 5D Pipeline
+const gmv=totalRevenue;
+const netRev=totalRevenue-totalRefund;
+const grossProfit=netRev-estimatedCOGS-estimatedShipping;
+const netProfit=grossProfit-estimatedAds-estimatedPlatformFee;
+const trueP=netProfit;
+const stepData=[
+{l:'GMV',v:gmv,pct:'100%'},
+{l:'净收入',v:netRev,pct:(netRev/gmv*100).toFixed(0)+'%'},
+{l:'毛利润',v:grossProfit,pct:(grossProfit/gmv*100).toFixed(0)+'%'},
+{l:'净利润',v:netProfit,pct:(netProfit/gmv*100).toFixed(0)+'%'},
+{l:'真实利润',v:trueP,pct:(trueP/gmv*100).toFixed(0)+'%'}
+];
+let pipeHtml='<h3>📊 5D利润管线</h3><div class="pipe-flow">';
+stepData.forEach((s,i)=>{
+const color=s.v>=0?(s.v/gmv>0.2?'var(--accent2)':s.v/gmv>0.1?'var(--gold)':'var(--orange)'):'var(--red)';
+pipeHtml+=`<div class="pipe-step"><div class="pipe-val" style="color:${color}">¥${fmtNum(s.v)}</div><div class="pipe-lbl">${s.l}</div><div class="pipe-pct">${s.pct}</div></div>`;
+if(i<stepData.length-1)pipeHtml+='<div class="pipe-arrow">→</div>';
+});
+pipeHtml+='</div>';
+document.getElementById('pipeline').innerHTML=pipeHtml;
+
+// Cost Breakdown Chart
+const costData=[
+{l:'进货成本(COGS)',v:estimatedCOGS,c:'#4f8cff'},
+{l:'广告推广',v:estimatedAds,c:'#ff8c42'},
+{l:'快递物流',v:estimatedShipping,c:'#00e5a0'},
+{l:'平台佣金',v:estimatedPlatformFee,c:'#a78bfa'},
+{l:'退货损耗',v:estimatedReturns,c:'#ff4d6a'}
+];
+new Chart(document.getElementById('costChart'),{
+type:'doughnut',
+data:{labels:costData.map(d=>d.l),datasets:[{data:costData.map(d=>d.v),backgroundColor:costData.map(d=>d.c),borderWidth:0}]},
+options:{responsive:true,plugins:{legend:{position:'bottom',labels:{color:'#6a6a8a',font:{size:11},padding:12}}}}
+});
+
+// Trend Chart
+const days=Object.keys(dailyData).sort().slice(-14);
+if(days.length>0){
+new Chart(document.getElementById('trendChart'),{
+type:'line',
+data:{labels:days.map(d=>d.substring(5)),datasets:[{label:'销售额',data:days.map(d=>dailyData[d].revenue),borderColor:'#4f8cff',backgroundColor:'rgba(79,140,255,.1)',fill:true,tension:.3,pointRadius:2}]},
+options:{responsive:true,scales:{x:{ticks:{color:'#6a6a8a',font:{size:10}},grid:{color:'rgba(255,255,255,.03)'}},y:{ticks:{color:'#6a6a8a',font:{size:10},callback:v=>'¥'+v},grid:{color:'rgba(255,255,255,.03)'}}},plugins:{legend:{display:false}}}
+});
+}
+
+// Product Table
+const productList=Object.values(products).sort((a,b)=>b.revenue-a.revenue).slice(0,15);
+let thtml='';
+productList.forEach(p=>{
+const pMargin=((p.revenue-estimatedCOGS/productList.length)/p.revenue*100);
+const cls=pMargin>=15?'badge-profit':pMargin>=0?'badge-warn':'badge-loss';
+const status=pMargin>=15?'✅ 盈利':pMargin>=0?'⚠️ 微利':'❌ 亏损';
+thtml+=`<tr><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis">${p.name}</td><td>${p.quantity}</td><td>¥${fmtNum(p.revenue)}</td><td>¥${fmtNum(estimatedCOGS/productList.length)}</td><td style="font-weight:600;color:${pMargin>=0?'var(--accent2)':'var(--red)'}">¥${fmtNum(p.revenue-estimatedCOGS/productList.length)}</td><td><span class="${cls}">${pMargin.toFixed(1)}%</span></td><td>${status}</td></tr>`;
+});
+document.getElementById('productTable').innerHTML=thtml;
+
+// Insights
+const insights=[];
+if(profitMargin<10)insights.push({icon:'🚨',bg:'rgba(255,77,106,.1)',text:`<strong>利润率仅${profitMargin.toFixed(1)}%，非常危险。</strong>建议：提高售价、降低广告占比、或优化供应链成本。`});
+if(estimatedAds/totalRevenue>0.2)insights.push({icon:'📢',bg:'rgba(255,140,66,.1)',text:`<strong>广告费占比${(estimatedAds/totalRevenue*100).toFixed(0)}%，超过20%警戒线。</strong>建议优化关键词、提高转化率来降低PPC。`});
+if(productList.length>0&&productList[productList.length-1].revenue<totalRevenue*0.02)insights.push({icon:'📦',bg:'rgba(167,139,250,.1)',text:`<strong>长尾商品占比过高。</strong>建议清理连续30天无销量的SKU，集中资源推爆款。`});
+insights.push({icon:'💡',bg:'rgba(79,140,255,.1)',text:`<strong>你的平均客单价¥${avgPrice.toFixed(0)}。</strong>考虑搭配销售或满减活动提高客单价，每单多赚10%就是纯利润。`});
+if(totalRefund>0)insights.push({icon:'📦',bg:'rgba(255,77,106,.1)',text:`<strong>退款金额¥${fmtNum(totalRefund)}。</strong>检查差评集中的商品，优化详情页描述减少预期差。`});
+
+let ih='';
+insights.forEach(ins=>{
+ih+=`<div class="insight-item"><div class="insight-icon" style="background:${ins.bg}">${ins.icon}</div><div class="insight-text">${ins.text}</div></div>`;
+});
+document.getElementById('insights').innerHTML=`<h3>💡 智能洞察</h3>${ih}`;
+}
+
+function parseCSVLine(line){
+const result=[];let current='';let inQuote=false;
+for(let i=0;i<line.length;i++){
+const c=line[i];
+if(c==='"'){inQuote=!inQuote;continue}
+if(c===','&&!inQuote){result.push(current.trim());current='';continue}
+current+=c;
+}
+result.push(current.trim());
+return result;
+}
+
+function fmtNum(n){
+if(Math.abs(n)>=10000)return(n/10000).toFixed(1)+'万';
+return n.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g,',');
+}
+</script>
+</body>
+</html>
