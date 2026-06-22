@@ -294,23 +294,29 @@ const row=parseCSVLine(lines[i]);
 if(row.length<3)continue;
 
 const name=cols.name>=0?row[cols.name]:'商品'+i;
-const price=cols.price>=0?parseFloat(String(row[cols.price]).replace(/[¥￥,，]/g,''))||0:0;
+const rawPrice=cols.price>=0?parseFloat(String(row[cols.price]).replace(/[¥￥,，]/g,''))||0:0;
 const count=cols.count>=0?parseInt(row[cols.count])||1:1;
 const postage=cols.postage>=0?parseFloat(String(row[cols.postage]).replace(/[¥￥,，]/g,''))||0:0;
 const status=cols.status>=0?row[cols.status]:'';
 const date=cols.date>=0?row[cols.date]:'';
 
+// Determine if price column is per-unit or total
+const priceColName=headers[cols.price]||'';
+const isTotalPrice=priceColName.includes('实付')||priceColName.includes('实收')||priceColName.includes('订单金额')||priceColName.includes('总金额');
+const price=isTotalPrice?rawPrice:rawPrice*count;
+const unitPrice=isTotalPrice?(count>0?rawPrice/count:rawPrice):rawPrice;
+
 // Skip refunded orders
 if(status.includes('退款')||status.includes('退货')){totalRefund+=price;continue}
 
-totalRevenue+=price*count;
+totalRevenue+=price;
 totalOrders+=count;
-totalPostage+=postage*count;
+totalPostage+=postage;
 
 // Aggregate by product
 if(!products[name])products[name]={name,quantity:0,revenue:0};
 products[name].quantity+=count;
-products[name].revenue+=price*count;
+products[name].revenue+=price;
 
 // Daily data
 if(date){
